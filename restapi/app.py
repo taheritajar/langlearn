@@ -68,7 +68,7 @@ async def train(background_tasks: BackgroundTasks,):
     logger.info(f"Train is started...")
     dataset_folder = f"dataset/"
     # Trigger training in the background
-    background_tasks.add_task(train_yolov8_model, dataset_folder, epochs=1, inference_model=inference_model)
+    background_tasks.add_task(train_yolov8_model, dataset_folder, epochs=50, inference_model=inference_model)
 
     return {"Training..."}
 
