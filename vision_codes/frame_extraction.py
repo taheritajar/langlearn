@@ -56,7 +56,7 @@ def extract_and_organize_frames(video_path, output_folder, class_name, save_ever
 
     cap.release()
     logger.info(f"Extracted {count} frames for class {class_name}")
-    
+
     all_files = list(Path(temp_output_folder).glob("*.jpg"))
     train_files, val_files, test_files = split_dataset(all_files)
 

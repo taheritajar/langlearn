@@ -1,15 +1,14 @@
 import os
-
+from PIL import Image
+import io
 from fastapi import FastAPI, File, UploadFile, HTTPException, BackgroundTasks, Form
 import shutil
-from pydantic import BaseModel
 import torch
 import os
-import asyncio
 from vision_codes.frame_extraction import extract_and_organize_frames
 from vision_codes.yolov8_train import train_yolov8_model
 import logging
-
+from vision_codes.yolov8_inference import model
 # Set up logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -59,14 +58,32 @@ async def upload_video(background_tasks: BackgroundTasks, class_name: str= Form(
     return {"filename": file.filename, "class_name": class_name}
 
 
-class ImageRequest(BaseModel):
-    image_path: str
-
 @app.get("/train/")
 async def train(background_tasks: BackgroundTasks,):
     logger.info(f"Train is started...")
     dataset_folder = f"dataset/"
     # Trigger training in the background
-    background_tasks.add_task(train_yolov8_model, dataset_folder, epochs=50)
+    background_tasks.add_task(train_yolov8_model, dataset_folder, epochs=1)
 
     return {"Training..."}
+
+
+@app.post("/predict/")
+async def predict(file: UploadFile = File(...)):
+    # Check if the uploaded file is an image
+    if not file.content_type.startswith("image/"):
+        raise HTTPException(status_code=400, detail="Uploaded file is not an image.")
+
+    # Read the image file
+    contents = await file.read()
+    image = Image.open(io.BytesIO(contents))
+
+    predictions = model(image)  # predict on an image
+
+    for result in predictions:
+        my_dict = result.__dict__
+        predicted_class = my_dict["names"][result.probs.top1]
+        logger.info(f"Classification result:{predicted_class}")
+
+    # Return the predictions
+    return {"predictions": predicted_class}
