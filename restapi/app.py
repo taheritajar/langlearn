@@ -8,12 +8,15 @@ import os
 from vision_codes.frame_extraction import extract_and_organize_frames
 from vision_codes.yolov8_train import train_yolov8_model
 import logging
-from vision_codes.yolov8_inference import model
+from vision_codes.yolov8_inference import InferenceManager
 # Set up logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 app = FastAPI()
+
+inference_model = InferenceManager()
+
 
 @app.post("/upload_video/")
 async def upload_video(background_tasks: BackgroundTasks, class_name: str= Form(...), file: UploadFile = File(...)):
@@ -53,7 +56,9 @@ async def upload_video(background_tasks: BackgroundTasks, class_name: str= Form(
     # shutil.rmtree(video_path)
 
     # Trigger training in the background
-    background_tasks.add_task(train_yolov8_model, dataset_folder, epochs=50)
+    background_tasks.add_task(train_yolov8_model, dataset_folder, epochs=50, inference_model=inference_model)
+    # trigger inference model to reload
+
 
     return {"filename": file.filename, "class_name": class_name}
 
@@ -63,7 +68,7 @@ async def train(background_tasks: BackgroundTasks,):
     logger.info(f"Train is started...")
     dataset_folder = f"dataset/"
     # Trigger training in the background
-    background_tasks.add_task(train_yolov8_model, dataset_folder, epochs=1)
+    background_tasks.add_task(train_yolov8_model, dataset_folder, epochs=1, inference_model=inference_model)
 
     return {"Training..."}
 
@@ -78,7 +83,7 @@ async def predict(file: UploadFile = File(...)):
     contents = await file.read()
     image = Image.open(io.BytesIO(contents))
 
-    predictions = model(image)  # predict on an image
+    predictions = inference_model.inference(image)  # predict on an image
 
     for result in predictions:
         my_dict = result.__dict__
@@ -87,3 +92,9 @@ async def predict(file: UploadFile = File(...)):
 
     # Return the predictions
     return {"predictions": predicted_class}
+
+
+@app.get("/unload_model/")
+async def unload_model():
+    inference_model.unload_model()
+    return {"Unloaded model..."}

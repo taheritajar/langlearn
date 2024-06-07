@@ -10,7 +10,7 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
-def train_yolov8_model(data_path, epochs=50):
+def train_yolov8_model(data_path, epochs=50, inference_model=None):
     if os.path.exists('trained_model.pt'):
         logger.info(f"Train on ==> trained_model.pt")
         model = YOLO('trained_model.pt')  # Load a pretrained model
@@ -30,3 +30,6 @@ def train_yolov8_model(data_path, epochs=50):
     dst = f"trained_model.pt"
     shutil.copyfile(src, dst)
     logger.info(f"Train is finished...")
+
+    inference_model.reload_model()
+    logger.info(f"Model has reloaded with new settings...")
