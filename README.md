@@ -1,5 +1,6 @@
 # langlearn
-## language learning with virtual avatars
+
+**language learning with virtual avatars**
 
 ![alt text](./langlearn_logo.png)
 
