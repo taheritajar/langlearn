@@ -1,7 +1,9 @@
+import json
 import os
 from PIL import Image
 import io
 from fastapi import FastAPI, File, UploadFile, HTTPException, BackgroundTasks, Form
+from fastapi.responses import JSONResponse
 import shutil
 import torch
 import os
@@ -68,7 +70,7 @@ async def train(background_tasks: BackgroundTasks,):
     logger.info(f"Train is started...")
     dataset_folder = f"dataset/"
     # Trigger training in the background
-    background_tasks.add_task(train_yolov8_model, dataset_folder, epochs=50, inference_model=inference_model)
+    background_tasks.add_task(train_yolov8_model, dataset_folder, epochs=5, inference_model=inference_model)
 
     return {"Training..."}
 
@@ -83,15 +85,11 @@ async def predict(file: UploadFile = File(...)):
     contents = await file.read()
     image = Image.open(io.BytesIO(contents))
 
-    predictions = inference_model.inference(image)  # predict on an image
-
-    for result in predictions:
-        my_dict = result.__dict__
-        predicted_class = my_dict["names"][result.probs.top1]
-        logger.info(f"Classification result:{predicted_class}")
+    predicted_class = inference_model.inference(image)  # predict on an image
 
     # Return the predictions
-    return {"predictions": predicted_class}
+    # return {"predictions": predicted_class}
+    return JSONResponse(content=json.loads(predicted_class))
 
 
 @app.get("/unload_model/")

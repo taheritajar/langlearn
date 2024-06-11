@@ -15,7 +15,7 @@ def train_yolov8_model(data_path, epochs=50, inference_model=None):
         logger.info(f"Train on ==> trained_model.pt")
         model = YOLO('trained_model.pt')  # Load a pretrained model
     else:
-        model = YOLO('yolov8s-cls.pt')
+        model = YOLO('yolov8s.pt')
 
     results = model.train(data=data_path, epochs=epochs, patience=20, verbose=True, project='langlearn_trains/',
                           val=True, save_dir='./train_results/')
