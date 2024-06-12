@@ -3,14 +3,17 @@ import os
 from PIL import Image
 import io
 from fastapi import FastAPI, File, UploadFile, HTTPException, BackgroundTasks, Form
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, StreamingResponse
 import shutil
 import torch
 import os
-from vision_codes.frame_extraction import extract_and_organize_frames
+from vision_codes.frame_extraction_cls import extract_and_organize_frames
 from vision_codes.yolov8_train import train_yolov8_model
 import logging
 from vision_codes.yolov8_inference import InferenceManager
+import base64
+import cv2
+
 # Set up logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -61,7 +64,6 @@ async def upload_video(background_tasks: BackgroundTasks, class_name: str= Form(
     background_tasks.add_task(train_yolov8_model, dataset_folder, epochs=50, inference_model=inference_model)
     # trigger inference model to reload
 
-
     return {"filename": file.filename, "class_name": class_name}
 
 
@@ -77,9 +79,11 @@ async def train(background_tasks: BackgroundTasks,):
 
 @app.post("/predict/")
 async def predict(file: UploadFile = File(...)):
-    # Check if the uploaded file is an image
-    if not file.content_type.startswith("image/"):
-        raise HTTPException(status_code=400, detail="Uploaded file is not an image.")
+    print(file.filename)
+    print(file.content_type)
+    # # Check if the uploaded file is an image
+    # if not file.content_type.startswith("image/"):
+    #     raise HTTPException(status_code=400, detail="Uploaded file is not an image.")
 
     # Read the image file
     contents = await file.read()

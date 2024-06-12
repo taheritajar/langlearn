@@ -1,8 +1,12 @@
+import io
+import json
+
+import cv2
 import numpy as np
 from ultralytics import YOLO
 import logging
 from ultralytics.utils.ops import scale_image
-import json
+
 
 # Set up logging
 logging.basicConfig(level=logging.INFO)
@@ -35,7 +39,7 @@ class InferenceManager:
         del self.model
         self.model = None
 
-    def process_yolov8_results(self, results, image_name="test.png"):
+    def process_yolov8_results(self, results):
         """
         Processes the YOLOv8 results and prepares a JSON response.
 
@@ -50,18 +54,21 @@ class InferenceManager:
         response = []
         for i, result in enumerate(results):
             predictions = []
-            result.show()  # display to screen
-            result.save(filename="result.jpg")  # save to disk
-
+            # result.show()  # display to screen
+            # result.save(filename="result.jpg")  # save to disk
             for box in result.boxes:
                 class_idx = int(box.cls.item())
-                bbox = box.xyxy[0].cpu().numpy().tolist()  # Extract the bbox as a list
+                bbox = box.xyxy.cpu().numpy().astype(int).flatten()
+                class_name = result.names[class_idx]
+                confidence = box.conf.item()
+
                 prediction = {
-                    "class_name": result.names[class_idx],
-                    "bbox": bbox,
-                    "confidence": box.conf.item()
+                    "class_name": class_name,
+                    "bbox": bbox.tolist(),
+                    "confidence": float("{:.2f}".format(confidence * 100))
                 }
                 predictions.append(prediction)
+
 
             response.append({
                 "image_name": i,
