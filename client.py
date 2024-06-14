@@ -10,7 +10,7 @@ import io
 
 # Make the API call
 url = "http://127.0.0.1:8000/predict/"
-file_path = "Screenshot 2024-06-12 104958.png"
+file_path = r"C:\Users\Alireza\Desktop\arvr_proj\langlearn\temp_frames\frame_0006.jpg"
 files = {'file': open(file_path, 'rb')}
 response = requests.post(url, files=files)
 

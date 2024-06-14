@@ -163,6 +163,8 @@ cython_debug/
 
 
 dataset/
+datasets/
+runs/
 temp_videos/
 temp_frames/
 langlearn_trains/

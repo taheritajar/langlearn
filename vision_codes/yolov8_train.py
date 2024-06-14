@@ -10,15 +10,15 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
-def train_yolov8_model(data_path, epochs=50, inference_model=None):
+def train_yolov8_model(epochs=50, inference_model=None):
     if os.path.exists('trained_model.pt'):
         logger.info(f"Train on ==> trained_model.pt")
         model = YOLO('trained_model.pt')  # Load a pretrained model
     else:
         model = YOLO('yolov8s.pt')
 
-    results = model.train(data=data_path, epochs=epochs, patience=20, verbose=True, project='langlearn_trains/',
-                          val=True, save_dir='./train_results/')
+    results = model.train(data="./datasets/langlearn_dataset_config.yaml", epochs=epochs, patience=int(epochs * 0.3), verbose=True, project='langlearn_trains/',
+                          val=True, save_dir='./train_results/', workers=8, device=0)
 
     try:
         os.remove("trained_model.pt")
@@ -33,3 +33,7 @@ def train_yolov8_model(data_path, epochs=50, inference_model=None):
 
     inference_model.reload_model()
     logger.info(f"Model has reloaded with new settings...")
+
+
+# if __name__ == '__main__':
+#     train_yolov8_model(epochs=2)

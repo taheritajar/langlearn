@@ -76,3 +76,10 @@ class InferenceManager:
             })
 
         return json.dumps(response)
+
+    def inference_on_video(self, video_path):
+        if self.model is None:
+            self.reload_model()
+            return self.process_yolov8_results(self.model(video_path, stream=True, save=True))
+        else:
+            return self.process_yolov8_results(self.model(video_path, stream=True, save=True))
